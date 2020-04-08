@@ -1,0 +1,28 @@
+
+<MainScreen>:
+    id: main_screen
+    name: 'main_screen'
+    AnchorLayout:
+        MDRectangleFlatIconButton:
+            icon: "play"
+            text: "Start"
+            anchor_x: 'center'
+            anchor_y: 'center'
+            on_touch_up: main_screen.start_game()
+
+
+<GameScreen>:
+    id: game_screen
+    name: 'game_screen'
+    GameWidget:
+        id: game_widget
+        canvas:
+            Rectangle:
+                pos: [0, 0]
+                size: self.size
+        canvas.after:
+            Rectangle:
+                source: "assets/images/target.png"
+                pos: [self.target_pos[0]-50, self.target_pos[1]-50]
+                size: (100, 100)
+
