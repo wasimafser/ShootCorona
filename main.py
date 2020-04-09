@@ -43,11 +43,21 @@ class GameWidget(Widget):
 
     def __init__(self, *args, **kwargs):
         super(GameWidget, self).__init__(*args, **kwargs)
+        self.coronas = set()
         self.counter = 0 # temp counter for testing
         self.load_entity_event = Clock.schedule_interval(self.load_entity, 1)
+        Clock.schedule_interval(self.check_bottom_touch, 0)
 
-    # def test(self, *args, **kwargs):
-    #     print("HERE")
+    def check_bottom_touch(self, dt):
+        bottom_touching_corona = None
+        try:
+            for corona in self.canvas.get_group('corona'):
+                if corona.pos[1] <= 0:
+                    bottom_touching_corona = corona
+        except Exception as e:
+            pass
+        if bottom_touching_corona is not None:
+            self.canvas.remove(bottom_touching_corona)
 
     def load_entity(self, dt):
         self.counter += 1
@@ -58,7 +68,9 @@ class GameWidget(Widget):
             corona_pos = [random.randint(0, Window.width-size_val), Window.height]
             size = [size_val, size_val]
             corona_obj = Corona(pos=corona_pos, size=size)
+            self.coronas.add(corona_obj)
             self.canvas.add(corona_obj)
+        # self.check_bottom_touch(dt)
 
     def find_colliding_corona(self, touch):
         for corona in self.canvas.get_group('corona'):
