@@ -16,13 +16,8 @@
     name: 'game_screen'
     GameWidget:
         id: game_widget
-        canvas:
-            Rectangle:
-                pos: [0, 0]
-                size: self.size
         canvas.after:
             Rectangle:
                 source: "assets/images/target.png"
                 pos: [self.target_pos[0]-50, self.target_pos[1]-50]
                 size: (100, 100)
-

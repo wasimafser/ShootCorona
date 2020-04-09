@@ -9,6 +9,8 @@ from kivy.core.window import Window
 
 import random
 import copy
+import time
+import traceback
 
 
 class Entity(object):
@@ -22,9 +24,17 @@ class Target(object):
 class Corona(Rectangle):
     def __init__(self, **kwargs):
         super(Corona, self).__init__(**kwargs)
+        self.group = 'corona'
         self.pos = kwargs.pop('pos', [0, 0])
         self.size = kwargs.pop('size', [100, 100])
         self.source = "assets/images/corona.png"
+        self.speed = random.randint(100, 200)
+        Clock.schedule_interval(self.move_corona, 0)
+
+    def move_corona(self, dt):
+        if int(self.pos[1]) >= 0:
+            y = self.pos[1] - self.speed * dt
+            self.pos = [self.pos[0], y]
 
 
 class GameWidget(Widget):
@@ -33,31 +43,36 @@ class GameWidget(Widget):
 
     def __init__(self, *args, **kwargs):
         super(GameWidget, self).__init__(*args, **kwargs)
-        self.coronas = set()
-        Clock.schedule_once(self.load_entity, 2)
+        self.counter = 0 # temp counter for testing
+        self.load_entity_event = Clock.schedule_interval(self.load_entity, 1)
+
+    # def test(self, *args, **kwargs):
+    #     print("HERE")
 
     def load_entity(self, dt):
-        for i in range(10):
-            pos = [random.randint(0, Window.width), random.randint(0, Window.height)]
-            size_val = random.randint(25, 100)
+        self.counter += 1
+        if self.counter >= 10:
+            self.load_entity_event.cancel()
+        if len(self.canvas.get_group('corona')) <= 10:
+            size_val = random.randint(50, 100)
+            corona_pos = [random.randint(0, Window.width-size_val), Window.height]
             size = [size_val, size_val]
-            corona_obj = Corona(pos=pos, size=size)
-            self.coronas.add(corona_obj)
+            corona_obj = Corona(pos=corona_pos, size=size)
             self.canvas.add(corona_obj)
-            print("CORONA", i, pos, size)
+
+    def find_colliding_corona(self, touch):
+        for corona in self.canvas.get_group('corona'):
+            corona_range_x = range(int(corona.pos[0]), int(corona.pos[0])+int(corona.size[0]))
+            corona_range_y = range(int(corona.pos[1]), int(corona.pos[1])+int(corona.size[1]))
+            if int(touch.pos[0]) in corona_range_x and int(touch.pos[1]) in corona_range_y:
+                return corona
+        return False
 
     def on_touch_down(self, touch):
         self.target_pos = touch.pos
-        temp_set = copy.copy(self.coronas)
-        for corona in self.coronas:
-            corona_range_x = range(int(corona.pos[0]), int(corona.pos[0])+int(corona.size[0]))
-            corona_range_y = range(int(corona.pos[1]), int(corona.pos[1])+int(corona.size[1]))
-            if touch.pos[0] in corona_range_x and touch.pos[1] in corona_range_y:
-                print(corona_range_x, touch.pos[0])
-                print("CORONA IS HIT")
-                self.canvas.remove(corona)
-                temp_set.remove(corona)
-        self.coronas = temp_set
+        corona_hit = self.find_colliding_corona(touch)
+        if corona_hit:
+            self.canvas.remove(corona_hit)
 
 
 class GameScreen(Screen):
